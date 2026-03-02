@@ -19,6 +19,9 @@ export class RoomManager {
         });
         console.log("user1 has intilaised the offer with the socket id", user1.socket.id);
     }
+    deleteRoom(roomId) {
+        this.rooms.delete(roomId);
+    }
     onOffer(sdp, roomId, socketId) {
         console.log("this si our sdp", sdp);
         console.log("this is room id", roomId);
@@ -48,7 +51,15 @@ export class RoomManager {
         });
         console.log("i am recieving the answer with the socket id is", recievingUser.socket.id);
     }
-    onIceCandidate(sdp, roomId, candidate, type) {
+    onIceCandidate(senderSocketId, roomId, candidate, type) {
+        const room = this.rooms.get(roomId);
+        if (!room) {
+            return;
+        }
+        const recievingUser = (room.user1.socket.id === senderSocketId ? room.user2 : room.user1);
+        recievingUser.socket.emit('add-ice-candidate', {
+            candidate, type
+        });
     }
     generate() {
         return GlobalId++;
