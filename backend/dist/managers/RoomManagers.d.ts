@@ -6,6 +6,7 @@ export declare class RoomManager {
     deleteRoom(roomId: string): void;
     onOffer(sdp: string, roomId: string, socketId: string): void;
     onAnswer(sdp: string, roomId: string, socketId: string): void;
+    onSkip(roomId: string, senderSocketId: string): void;
     onIceCandidate(candidate: any, roomId: string, senderSocketId: string): void;
     generate(): number;
 }

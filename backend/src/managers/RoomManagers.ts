@@ -51,10 +51,19 @@ export class RoomManager {
       roomId,
     });
   }
-  onIceCandidate( candidate: any, roomId:string, senderSocketId: string) {
-    
+  onSkip(roomId: string, senderSocketId: string) {
     const room = this.rooms.get(roomId);
-    
+
+    if (!room) {
+      return;
+    }
+    const recievingUser =
+      room.user1.socket.id === senderSocketId ? room.user2 : room.user1;
+        recievingUser.socket.emit("peer-skipped");
+         this.rooms.delete(roomId);
+  }
+  onIceCandidate(candidate: any, roomId: string, senderSocketId: string) {
+    const room = this.rooms.get(roomId);
 
     if (!room) {
       return;

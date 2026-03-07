@@ -47,6 +47,9 @@ export class UserManager {
         socket.on("add-ice-candidate", ({ candidate, roomId }) => {
             this.roomsManager.onIceCandidate(candidate, roomId, socket.id);
         });
+        socket.on("skip", ({ roomId }) => {
+            this.roomsManager.onSkip(roomId, socket.id);
+        });
     }
 }
 //# sourceMappingURL=UserManagers.js.map
