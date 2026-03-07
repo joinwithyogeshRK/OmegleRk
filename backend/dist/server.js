@@ -10,7 +10,7 @@ app.use(express.json());
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: "https://omegle-rk-36ut.vercel.app",
     },
 });
 app.get("/", (req, res) => {
@@ -26,6 +26,6 @@ io.on("connection", (socket) => {
     });
 });
 server.listen(process.env.PORT || 3005, () => {
-    console.log("listener running on http://localhost:3005");
+    console.log("listener running on https://omegle-rk-36ut.vercel.app");
 });
 //# sourceMappingURL=server.js.map

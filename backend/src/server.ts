@@ -11,7 +11,7 @@ app.use(express.json());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "omegle-rk-36ut.vercel.app",
+    origin: "https://omegle-rk-36ut.vercel.app",
   },
 });
 app.get("/", (req, res) => {
@@ -31,5 +31,5 @@ userManager.addUser("randomName",socket);
 });
 
 server.listen(process.env.PORT || 3005, () => {
-  console.log("listener running on http://localhost:3005");
+  console.log("listener running on https://omegle-rk-36ut.vercel.app");
 });
