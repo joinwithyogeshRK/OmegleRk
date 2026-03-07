@@ -18,15 +18,11 @@ app.get("/", (req, res) => {
 });
 const userManager = new UserManager();
 io.on("connection", (socket) => {
-    console.log("a user connected");
-    console.log(`user with the socket's id ${socket.id} came`);
     userManager.addUser("randomName", socket);
     socket.on("message", (sdp) => {
-        console.log("here is the sdp", sdp);
     });
     socket.on("disconnect", () => {
         userManager.removeUser(socket.id);
-        console.log("user disconnected");
     });
 });
 server.listen(process.env.PORT || 3005, () => {
