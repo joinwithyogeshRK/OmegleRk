@@ -16,7 +16,7 @@ const Room = () => {
   const userName = searchParams.get("name") || "You";
   const avatarLetter = userName.charAt(0).toUpperCase();
 
-  const url = "http://localhost:3005";
+ const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
 
   useEffect(() => {
     const socket = io(url);
