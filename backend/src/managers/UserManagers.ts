@@ -59,5 +59,11 @@ export class UserManager {
         this.roomsManager.onIceCandidate(candidate,roomId , socket.id);
       },
     );
+     socket.on(
+       "skip",
+       ({ roomId }: { roomId: string }) => {
+          this.roomsManager.onSkip(roomId,socket.id)
+       },
+     );
   }
 }
