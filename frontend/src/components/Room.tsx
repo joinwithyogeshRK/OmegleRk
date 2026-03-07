@@ -16,101 +16,120 @@ const Room = () => {
   const userName = searchParams.get("name") || "You";
   const avatarLetter = userName.charAt(0).toUpperCase();
 
- const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
-
+  const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
+  
   useEffect(() => {
-    const socket = io(url);
-    const pc = new RTCPeerConnection();
-    pcRef.current = pc;
+    const init = async () => {
+      // ✅ Fetch TURN credentials from backend (keeps secret key safe)
+      let iceServers = [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+      ];
 
-    const candidateQueue: RTCIceCandidateInit[] = [];
-
-
-    const setupLocalStream = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
+      try {
+        const res = await fetch(`${url}/api/turn-credentials`);
+        const turnServers = await res.json();
+        iceServers = [...iceServers, ...turnServers];
+      } catch (err) {
+        console.error("Failed to fetch TURN credentials, using STUN only", err);
       }
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-      return stream;
-    };
 
+      const socket = io(url);
+      const pc = new RTCPeerConnection({ iceServers }); // ✅ TURN included
+      pcRef.current = pc;
 
-    pc.ontrack = (event) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
-      }
-    };
+      const candidateQueue: RTCIceCandidateInit[] = [];
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate && roomRef.current) {
-        socket.emit("add-ice-candidate", {
-          candidate: event.candidate,
-          roomId: roomRef.current,
+      const setupLocalStream = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
         });
-      }
-    };
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+        stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+        return stream;
+      };
 
-    socket.on("add-ice-candidate", async ({ candidate }) => {
-      if (pc.remoteDescription) {
-        await pc.addIceCandidate(candidate);
-      } else {
-        candidateQueue.push(candidate);
-      }
-    });
+      pc.ontrack = (event) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      };
 
-    socket.on("send-offer", async ({ roomId }) => {
-      roomRef.current = roomId;
-      await setupLocalStream();
-      const sdp = await pc.createOffer();
-      await pc.setLocalDescription(sdp);
-      // ✅ Send our name along with the offer
-      socket.emit("offer", { roomId, sdp, name: userName });
-    });
+      pc.onicecandidate = (event) => {
+        if (event.candidate && roomRef.current) {
+          socket.emit("add-ice-candidate", {
+            candidate: event.candidate,
+            roomId: roomRef.current,
+          });
+        }
+      };
 
-    socket.on(
-      "offer",
-      async ({ sdp: remoteSdp, roomId, name: remoteUserName }) => {
+      socket.on("add-ice-candidate", async ({ candidate }) => {
+        if (pc.remoteDescription) {
+          await pc.addIceCandidate(candidate);
+        } else {
+          candidateQueue.push(candidate);
+        }
+      });
+
+      socket.on("send-offer", async ({ roomId }) => {
         roomRef.current = roomId;
-        // ✅ Save the remote user's name
-        if (remoteUserName) setRemoteName(remoteUserName);
         await setupLocalStream();
-        await pc.setRemoteDescription(remoteSdp);
+        const sdp = await pc.createOffer();
+        await pc.setLocalDescription(sdp);
+        socket.emit("offer", { roomId, sdp, name: userName });
+      });
+
+      socket.on(
+        "offer",
+        async ({ sdp: remoteSdp, roomId, name: remoteUserName }) => {
+          roomRef.current = roomId;
+          if (remoteUserName) setRemoteName(remoteUserName);
+          await setupLocalStream();
+          await pc.setRemoteDescription(remoteSdp);
+          for (const c of candidateQueue) {
+            try {
+              await pc.addIceCandidate(c);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+          candidateQueue.length = 0;
+          const sdp = await pc.createAnswer();
+          await pc.setLocalDescription(sdp);
+          socket.emit("answer", { roomId, sdp, name: userName });
+        },
+      );
+
+      socket.on("answer", async ({ sdp, name: remoteUserName }) => {
+        if (remoteUserName) setRemoteName(remoteUserName);
+        await pcRef.current!.setRemoteDescription(sdp);
         for (const c of candidateQueue) {
           try {
-            await pc.addIceCandidate(c);
+            await pcRef.current!.addIceCandidate(c);
           } catch (err) {
             console.error(err);
           }
         }
         candidateQueue.length = 0;
-        const sdp = await pc.createAnswer();
-        await pc.setLocalDescription(sdp);
+      });
 
-        socket.emit("answer", { roomId, sdp, name: userName });
-      },
-    );
+      return () => {
+        socket.disconnect();
+        pc.close();
+      };
+    };
 
-    socket.on("answer", async ({ sdp, name: remoteUserName }) => {
-
-      if (remoteUserName) setRemoteName(remoteUserName);
-      await pcRef.current!.setRemoteDescription(sdp);
-      for (const c of candidateQueue) {
-        try {
-          await pcRef.current!.addIceCandidate(c);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-      candidateQueue.length = 0;
+    let cleanup: (() => void) | undefined;
+    init().then((fn) => {
+      cleanup = fn;
     });
 
     return () => {
-      socket.disconnect();
-      pc.close();
+      cleanup?.();
     };
   }, []);
 
@@ -119,10 +138,9 @@ const Room = () => {
       className="min-h-screen w-full bg-cover bg-center bg-no-repeat relative overflow-hidden"
       style={{ backgroundImage: "url('/bg.avif')" }}
     >
-
       <div className="absolute inset-0 bg-gradient-to-br from-black/55 via-slate-900/45 to-black/65" />
 
-
+      {/* Navbar */}
       <nav
         className="relative z-20 flex items-center justify-between px-8 py-4"
         style={{
@@ -131,7 +149,7 @@ const Room = () => {
           borderBottom: "1px solid rgba(255,255,255,0.07)",
         }}
       >
-
+        {/* Brand */}
         <div className="flex items-center gap-3">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center text-base"
@@ -151,7 +169,7 @@ const Room = () => {
           </span>
         </div>
 
-
+        {/* User pill with dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
@@ -184,7 +202,6 @@ const Room = () => {
             </span>
           </button>
 
-          {/* Dropdown */}
           {showDropdown && (
             <div
               className="absolute right-0 top-12 rounded-xl overflow-hidden"
@@ -226,7 +243,7 @@ const Room = () => {
       {/* Video grid */}
       <div className="relative z-10 flex items-center justify-center gap-6 h-[calc(100vh-65px)] px-8">
         {/* Local video */}
-        <div className="relative group">
+        <div className="relative">
           <video
             ref={localVideoRef}
             className="rounded-2xl object-cover"
@@ -239,7 +256,6 @@ const Room = () => {
             playsInline
             muted
           />
-
           <div
             className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
             style={{
@@ -266,8 +282,8 @@ const Room = () => {
           </div>
         </div>
 
-
-        <div className="relative group">
+        {/* Remote video */}
+        <div className="relative">
           <video
             ref={remoteVideoRef}
             className="rounded-2xl object-cover"
@@ -279,7 +295,6 @@ const Room = () => {
             autoPlay
             playsInline
           />
-
           <div
             className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
             style={{
