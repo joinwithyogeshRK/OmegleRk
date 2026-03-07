@@ -6,7 +6,7 @@ export declare class RoomManager {
     deleteRoom(roomId: string): void;
     onOffer(sdp: string, roomId: string, socketId: string): void;
     onAnswer(sdp: string, roomId: string, socketId: string): void;
-    onIceCandidate(senderSocketId: string, roomId: string, candidate: any, type: "sender" | "reciever"): void;
+    onIceCandidate(candidate: any, roomId: string, senderSocketId: string): void;
     generate(): number;
 }
 //# sourceMappingURL=RoomManagers.d.ts.map

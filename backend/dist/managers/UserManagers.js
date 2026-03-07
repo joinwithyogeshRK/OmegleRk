@@ -15,11 +15,8 @@ export class UserManager {
             name,
             socket,
         });
-        console.log(`these are our users array now ${this.users}`);
         this.queue.push(socket.id);
-        console.log(`after the push queue fucntion ${this.users} users and ${this.queue} queue`);
         this.clearQueue();
-        console.log("after the clear queue funtion our queue is now", this.queue);
         this.initHandlers(socket);
     }
     removeUser(socketId) {
@@ -27,7 +24,6 @@ export class UserManager {
         this.queue = this.queue.filter((x) => x != socketId);
     }
     clearQueue() {
-        console.log("entering into clear queue");
         if (this.queue.length < 2) {
             return;
         }
@@ -48,8 +44,8 @@ export class UserManager {
         socket.on("answer", ({ sdp, roomId }) => {
             this.roomsManager.onAnswer(sdp, roomId, socket.id);
         });
-        socket.on("add-ice-candidate", ({ candidate, roomId, type, }) => {
-            this.roomsManager.onIceCandidate(roomId, socket.id, candidate, type);
+        socket.on("add-ice-candidate", ({ candidate, roomId }) => {
+            this.roomsManager.onIceCandidate(candidate, roomId, socket.id);
         });
     }
 }
