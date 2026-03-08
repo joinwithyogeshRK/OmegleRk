@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 });
 app.get("/api/turn-credentials", async (req, res) => {
   const response = await fetch(
-    `https://yogeshgurani.metered.live/api/v1/turn/credentials?apiKey=mV_ysrqRnRbbq4hM6dATE9e0sK7Q3rZhlBaiemMqlQLxAPvk`,
+    `https://yogeshgurani.metered.live/api/v1/turn/credentials?apiKey=f7a517913c03d0c2bf12d2a706cf10f87dfb`,
   );
   const iceServers = await response.json();
 
@@ -34,5 +34,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(process.env.PORT || 3005, () => {
-  console.log("listener running on http://localhost:3005");
+  console.log("listener running on https://omegle-rk-36ut.vercel.app");
 });
