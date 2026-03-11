@@ -10,7 +10,7 @@ app.use(express.json());
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "https://omegle-rk-36ut.vercel.app",
+        origin: "http://localhost:5173",
     },
 });
 app.get("/", (req, res) => {
@@ -24,12 +24,12 @@ app.get("/api/turn-credentials", async (req, res) => {
 const userManager = new UserManager();
 io.on("connection", (socket) => {
     userManager.addUser("randomName", socket);
-    socket.on("message", (sdp) => { });
     socket.on("disconnect", () => {
         userManager.removeUser(socket.id);
+        console.log("disconnected");
     });
 });
 server.listen(process.env.PORT || 3005, () => {
-    console.log("listener running on https://omegle-rk-36ut.vercel.app");
+    console.log("listener running on http://localhost:3005");
 });
 //# sourceMappingURL=server.js.map

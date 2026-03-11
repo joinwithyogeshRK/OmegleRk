@@ -17,7 +17,8 @@ const Room = () => {
   const avatarLetter = userName.charAt(0).toUpperCase();
   const socketRef = useRef<any>(null);
 
-  const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
+  // const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
+  const url = "http://localhost:3005";
   
   const handleSkip = () => {
     socketRef.current?.emit('skip',{roomId:roomRef.current})
@@ -50,15 +51,24 @@ const Room = () => {
       const candidateQueue: RTCIceCandidateInit[] = [];
 
       const setupLocalStream = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({
+      try{
+        console.log("yes i am in");
+        console.log("media devices",navigator.mediaDevices)
+          const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
+        console.log("streams",stream)
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
         }
+        console.log("localvideoref",localVideoRef.current);
+      
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
         return stream;
+      }catch(err:any){
+         console.error("getUserMedia error:", err.name, err.message);
+      }
       };
 
       pc.ontrack = (event) => {
