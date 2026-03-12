@@ -59,8 +59,8 @@ export class RoomManager {
     }
     const recievingUser =
       room.user1.socket.id === senderSocketId ? room.user2 : room.user1;
-        recievingUser.socket.emit("peer-skipped");
-         this.rooms.delete(roomId);
+    recievingUser.socket.emit("peer-skipped");
+    this.rooms.delete(roomId);
   }
   onIceCandidate(candidate: any, roomId: string, senderSocketId: string) {
     const room = this.rooms.get(roomId);
@@ -75,6 +75,21 @@ export class RoomManager {
     recievingUser.socket.emit("add-ice-candidate", {
       candidate,
     });
+  }
+  message(roomId: string, senderSocketId: string , message:string) {
+     const room = this.rooms.get(roomId);
+
+     if (!room) {
+       return;
+     }
+     console.log("hello i am on message",message)
+
+     const recievingUser =
+       room.user1.socket.id === senderSocketId ? room.user2 : room.user1;
+
+     recievingUser.socket.emit("getMessage", {
+       message,
+     });
   }
   generate() {
     return GlobalId++;
