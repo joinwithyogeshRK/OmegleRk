@@ -10,7 +10,7 @@ app.use(express.json());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://omegle-rk-36ut.vercel.app/",
   },
 });
 app.get("/", (req, res) => {
