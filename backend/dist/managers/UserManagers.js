@@ -50,6 +50,10 @@ export class UserManager {
         socket.on("skip", ({ roomId }) => {
             this.roomsManager.onSkip(roomId, socket.id);
         });
+        socket.on("sendMessage", ({ roomId, message }) => {
+            console.log("here the evnt is fired in user manager");
+            this.roomsManager.message(roomId, socket.id, message);
+        });
     }
 }
 //# sourceMappingURL=UserManagers.js.map

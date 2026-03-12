@@ -8,6 +8,7 @@ export declare class RoomManager {
     onAnswer(sdp: string, roomId: string, socketId: string): void;
     onSkip(roomId: string, senderSocketId: string): void;
     onIceCandidate(candidate: any, roomId: string, senderSocketId: string): void;
+    message(roomId: string, senderSocketId: string, message: string): void;
     generate(): number;
 }
 //# sourceMappingURL=RoomManagers.d.ts.map
