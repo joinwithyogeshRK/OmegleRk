@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { io } from "socket.io-client";
 import { useClerk } from "@clerk/clerk-react";
+import ChatComponent from "./Chat";
 
 const Room = () => {
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -57,6 +58,7 @@ const Room = () => {
           const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
+          
         });
         console.log("streams",stream)
         if (localVideoRef.current) {
@@ -263,112 +265,128 @@ const Room = () => {
       </nav>
 
       {/* Video grid */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-6 h-[calc(100vh-65px)] px-8">
-        <div className="flex gap-6">
-          {/* Local video */}
-          <div className="relative">
-            <video
-              ref={localVideoRef}
-              className="rounded-2xl object-cover"
-              style={{
-                width: 560,
-                height: 360,
-                boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
-                border: "1px solid rgba(255,255,255,0.12)",
-              }}
-              autoPlay
-              playsInline
-              muted
-            />
-            <div
-              className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
-              style={{
-                background: "rgba(0,0,0,0.6)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+      <div className="flex h-screen w-full ">
+        <div className="relative z-10 flex flex-col items-center justify-center gap-6 h-[calc(100vh-65px)] px-8">
+          <div className="flex gap-6">
+            {/* Local video */}
+            <div className="relative">
+              <video
+                ref={localVideoRef}
+                className="rounded-2xl object-cover"
                 style={{
-                  background: "linear-gradient(135deg, #3b82f6, #7c3aed)",
+                  width: 560,
+                  height: 360,
+                  boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+                autoPlay
+                playsInline
+                muted
+              />
+              <div
+                className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                style={{
+                  background: "rgba(0,0,0,0.6)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
                 }}
               >
-                {avatarLetter}
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #3b82f6, #7c3aed)",
+                  }}
+                >
+                  {avatarLetter}
+                </div>
+                <span className="text-white text-xs font-medium">
+                  {userName} (You)
+                </span>
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: "#22c55e",
+                    boxShadow: "0 0 4px #22c55e",
+                  }}
+                />
               </div>
-              <span className="text-white text-xs font-medium">
-                {userName} (You)
-              </span>
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: "#22c55e", boxShadow: "0 0 4px #22c55e" }}
+            </div>
+
+            {/* Remote video */}
+            <div className="relative">
+              <video
+                ref={remoteVideoRef}
+                className="rounded-2xl object-cover"
+                style={{
+                  width: 560,
+                  height: 360,
+                  boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+                autoPlay
+                playsInline
+                muted
               />
+              <div
+                className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                style={{
+                  background: "rgba(0,0,0,0.6)",
+                  backdropFilter: "blur(8px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              >
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #f59e0b, #ef4444)",
+                  }}
+                >
+                  {remoteName.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-white text-xs font-medium">
+                  {remoteName}
+                </span>
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: "#22c55e",
+                    boxShadow: "0 0 4px #22c55e",
+                  }}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Remote video */}
-          <div className="relative">
-            <video
-              ref={remoteVideoRef}
-              className="rounded-2xl object-cover"
-              style={{
-                width: 560,
-                height: 360,
-                boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
-                border: "1px solid rgba(255,255,255,0.12)",
-              }}
-              autoPlay
-              playsInline
-            />
-            <div
-              className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
-              style={{
-                background: "rgba(0,0,0,0.6)",
-                backdropFilter: "blur(8px)",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <div
-                className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{
-                  background: "linear-gradient(135deg, #f59e0b, #ef4444)",
-                }}
-              >
-                {remoteName.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-white text-xs font-medium">
-                {remoteName}
-              </span>
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: "#22c55e", boxShadow: "0 0 4px #22c55e" }}
-              />
-            </div>
-          </div>
+          {/* Skip button */}
+          <button
+            className="flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold text-sm tracking-widest uppercase transition-all duration-200"
+            style={{
+              background: "linear-gradient(135deg, #16a34a, #22c55e)",
+              color: "#fff",
+              border: "1px solid rgba(34,197,94,0.4)",
+              boxShadow: "0 8px 28px rgba(34,197,94,0.35)",
+              letterSpacing: "0.1em",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px) scale(1.03)";
+              e.currentTarget.style.boxShadow =
+                "0 14px 36px rgba(34,197,94,0.5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0) scale(1)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 28px rgba(34,197,94,0.35)";
+            }}
+            onClick={() => handleSkip()}
+          >
+            ⏭ Skip
+          </button>
         </div>
-
-        {/* Skip button */}
-        <button
-          className="flex items-center gap-2 px-10 py-3.5 rounded-full font-semibold text-sm tracking-widest uppercase transition-all duration-200"
-          style={{
-            background: "linear-gradient(135deg, #16a34a, #22c55e)",
-            color: "#fff",
-            border: "1px solid rgba(34,197,94,0.4)",
-            boxShadow: "0 8px 28px rgba(34,197,94,0.35)",
-            letterSpacing: "0.1em",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px) scale(1.03)";
-            e.currentTarget.style.boxShadow = "0 14px 36px rgba(34,197,94,0.5)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0) scale(1)";
-            e.currentTarget.style.boxShadow = "0 8px 28px rgba(34,197,94,0.35)";
-          }}
-          onClick={() => handleSkip()}
-        >
-          ⏭ Skip
-        </button>
+        <div className="w-7/12 h-11/12 p-10">
+         
+            <ChatComponent socket={socketRef.current} roomId={roomRef.current}/>
+          
+        </div>
       </div>
 
       <style>{`
