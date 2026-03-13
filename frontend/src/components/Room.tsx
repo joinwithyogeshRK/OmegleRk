@@ -23,8 +23,8 @@ const Room = () => {
   const avatarLetter = userName.charAt(0).toUpperCase();
   const socketRef = useRef<any>(null);
 
-  // const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
-  const url = "http://localhost:3005";
+  const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
+  // const url = "http://localhost:3005";
 
   const handleSkip = () => {
     socketRef.current?.emit("skip", { roomId: roomRef.current });
