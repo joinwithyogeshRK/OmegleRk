@@ -11,10 +11,16 @@ export class UserManager {
     }
     addUser(name, socket) {
         console.log(`user with the ${socket.id} came`);
-        this.users.push({
+        const randomIndex = Math.floor(Math.random() * this.users.length);
+        const newUser = {
             name,
             socket,
-        });
+        };
+        this.users = [
+            ...this.users.slice(0, randomIndex),
+            newUser,
+            ...this.users.slice(randomIndex),
+        ];
         this.queue.push(socket.id);
         this.clearQueue();
         this.initHandlers(socket);
