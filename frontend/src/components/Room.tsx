@@ -48,6 +48,9 @@ const Room = () => {
       const socket = io(url);
       socketRef.current = socket;
       setSocket(socket);
+       window.addEventListener("beforeunload", () => {
+   socket.emit("skip", { roomId: roomRef.current });
+ });
 
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
