@@ -48,10 +48,16 @@ const Room = () => {
       const socket = io(url);
       socketRef.current = socket;
       setSocket(socket);
+<<<<<<< HEAD
        window.addEventListener("beforeunload", () => {
    socket.emit("skip", { roomId: roomRef.current });
  });
 
+=======
+      window.addEventListener("beforeunload", () => {
+        socket.emit("skip", { roomId: roomRef.current });
+      });
+>>>>>>> 7d2c834 (frontend is improved and before unload is done)
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
 
