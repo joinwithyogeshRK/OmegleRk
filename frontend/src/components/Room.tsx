@@ -22,7 +22,7 @@ const Room = () => {
   const userName = searchParams.get("name") || "You";
   const avatarLetter = userName.charAt(0).toUpperCase();
   const socketRef = useRef<any>(null);
-
+const [connected, setConnected] = useState(false);
   const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
   // const url = "http://localhost:3005";
 
@@ -48,19 +48,22 @@ const Room = () => {
       const socket = io(url);
       socketRef.current = socket;
       setSocket(socket);
-<<<<<<< HEAD
-       window.addEventListener("beforeunload", () => {
-   socket.emit("skip", { roomId: roomRef.current });
- });
-
-=======
       window.addEventListener("beforeunload", () => {
         socket.emit("skip", { roomId: roomRef.current });
       });
->>>>>>> 7d2c834 (frontend is improved and before unload is done)
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
-
+pc.onconnectionstatechange = () => {
+  if (pc.connectionState === "connected") {
+    setConnected(true);
+  } else if (
+    pc.connectionState === "disconnected" ||
+    pc.connectionState === "failed" ||
+    pc.connectionState === "closed"
+  ) {
+    setConnected(false);
+  }
+};
       const candidateQueue: RTCIceCandidateInit[] = [];
 
       const setupLocalStream = async () => {
@@ -333,7 +336,35 @@ const Room = () => {
           )}
         </div>
       </nav>
-
+      {/* Connecting banner */}
+      {!connected && (
+        <div
+          className="flex items-center gap-3 px-6 py-3 rounded-2xl mb-2"
+          style={{
+            background: "rgba(163,230,53,0.06)",
+            border: "1px solid rgba(163,230,53,0.2)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          {/* Pulsing dot */}
+          <span className="relative flex h-2.5 w-2.5">
+            <span
+              className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+              style={{ background: "#a3e635" }}
+            />
+            <span
+              className="relative inline-flex rounded-full h-2.5 w-2.5"
+              style={{ background: "#a3e635" }}
+            />
+          </span>
+          <p
+            className="text-sm font-medium"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            Connecting you to someone...
+          </p>
+        </div>
+      )}
       {/* Main content — videos + chat side by side */}
       <div className="relative z-10 flex h-[calc(100vh-65px)]">
         {/* Video area — takes remaining space */}
