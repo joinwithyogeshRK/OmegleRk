@@ -16,7 +16,7 @@ const Room = () => {
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [unread, setUnread] = useState(0);
-
+  const [dataChannel, setDataChannel] = useState<any | null>();
   const { signOut } = useClerk();
   const [searchParams] = useSearchParams();
   const userName = searchParams.get("name") || "You";
@@ -24,6 +24,7 @@ const Room = () => {
   const socketRef = useRef<any>(null);
 
   const url = import.meta.env.VITE_BACKEND_URL || "http://localhost:3005";
+  // const url = "http://localhost:3005";
 
   const handleSkip = () => {
     socketRef.current?.emit("skip", { roomId: roomRef.current });
@@ -99,6 +100,20 @@ const Room = () => {
       });
 
       socket.on("send-offer", async ({ roomId }) => {
+        const dc = pc.createDataChannel("chat");
+        dc.onmessage = (event: MessageEvent) => {
+          setMessages((prev) => [
+            ...prev,
+            { id: Math.random(), text: event.data, sender: "remote" },
+          ]);
+          setShowChat((open) => {
+            if (!open) setUnread((u) => u + 1);
+            return open;
+          });
+        };
+
+        setDataChannel(dc);
+
         roomRef.current = roomId;
         setRoomId(roomId);
         await setupLocalStream();
@@ -115,6 +130,22 @@ const Room = () => {
           if (remoteUserName) setRemoteName(remoteUserName);
           await setupLocalStream();
           await pc.setRemoteDescription(remoteSdp);
+
+          pc.ondatachannel = (event) => {
+            const dc = event.channel;
+            dc.onmessage = (event: MessageEvent) => {
+              setMessages((prev) => [
+                ...prev,
+                { id: Math.random(), text: event.data, sender: "remote" },
+              ]);
+              setShowChat((open) => {
+                if (!open) setUnread((u) => u + 1);
+                return open;
+              });
+            };
+
+            setDataChannel(dc);
+          };
           for (const c of candidateQueue) {
             try {
               await pc.addIceCandidate(c);
@@ -378,7 +409,7 @@ const Room = () => {
                 className="w-full h-full object-cover"
                 autoPlay
                 playsInline
-                
+                muted
               />
               <div
                 className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-lg"
@@ -455,6 +486,7 @@ const Room = () => {
               setMessages={setMessages}
               remoteName={remoteName}
               onClose={() => setShowChat(false)}
+              dataChannel={dataChannel}
             />
           </div>
         )}
