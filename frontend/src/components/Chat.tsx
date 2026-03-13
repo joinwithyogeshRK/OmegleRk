@@ -8,7 +8,9 @@ export default function ChatBox({
   setMessages,
   remoteName = "Remote",
   onClose,
+  dataChannel,
 }: {
+  dataChannel: any;
   socket: Socket;
   roomId: string | null;
   messages: any[];
@@ -25,12 +27,23 @@ export default function ChatBox({
 
   const send = () => {
     if (!message.trim()) return;
-    socket?.emit("sendMessage", { roomId, message });
-    setMessages((prev) => [
-      ...prev,
-      { id: Math.random(), text: message, sender: "me" },
-    ]);
-    setMessage("");
+
+    if (dataChannel.readyState === "open") {
+      setMessages((prev) => [
+        ...prev,
+        { id: Math.random(), text: message, sender: "me" },
+      ]);
+      setMessage("");
+      dataChannel.send(message);
+    } else {
+      console.log("sending messages thru socket");
+      socket?.emit("sendMessage", { roomId, message });
+      setMessages((prev) => [
+        ...prev,
+        { id: Math.random(), text: message, sender: "me" },
+      ]);
+      setMessage("");
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
