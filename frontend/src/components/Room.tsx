@@ -339,14 +339,23 @@ pc.onconnectionstatechange = () => {
       {/* Connecting banner */}
       {!connected && (
         <div
-          className="flex items-center gap-3 px-6 py-3 rounded-2xl mb-2"
           style={{
+            position: "absolute",
+            top: "90px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 50,
             background: "rgba(163,230,53,0.06)",
             border: "1px solid rgba(163,230,53,0.2)",
             backdropFilter: "blur(10px)",
+            borderRadius: "16px",
+            padding: "10px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            whiteSpace: "nowrap",
           }}
         >
-          {/* Pulsing dot */}
           <span className="relative flex h-2.5 w-2.5">
             <span
               className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
